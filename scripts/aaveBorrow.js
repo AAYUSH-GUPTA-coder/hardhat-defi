@@ -27,15 +27,27 @@ async function main() {
     //! Borrow !!!
     // how much we have borrowed, how much we have in collateral, how much we can borrow
     const daiTokenAddress = "0x6b175474e89094c44da98b954eedeac495271d0f"
-    
-    
+    await borrowDai(daiTokenAddress, lendingPool, amountDaiToBorrowWei, deployer)
+    await getBorrowUserData(lendingPool, deployer)
+
+    //! Repay
+    await repay(amountDaiToBorrowWei, daiTokenAddress, lendingPool, deployer)
+    await getBorrowUserData(lendingPool, deployer)
 }
 
-async function borrowDai(daiAddress, lendingPool, amountDaiToBorrowWei, account) { 
-    const borrowTx = await lendingPool.borrow(daiAddress, amountDaiToBorrow, 1, 0, account)
+//! Repay function
+async function repay(amount, daiAddress, lendingPool, account) {
+    await approveErc20(daiAddress, lendingPool.address, amount, account)
+    const repayTx = await lendingPool.repay(daiAddress, amount, 1, account)
+    await repayTx.wait(1)
+    console.log("Repaid")
+}
+
+async function borrowDai(daiAddress, lendingPool, amountDaiToBorrowWei, account) {
+    const borrowTx = await lendingPool.borrow(daiAddress, amountDaiToBorrowWei, 1, 0, account)
     await borrowTx.wait(1)
-    console.log("You have borrowed !!");
- }
+    console.log("You have borrowed !!")
+}
 
 async function getDaiPrice() {
     const daiEthPriceFeed = await ethers.getContractAt(
